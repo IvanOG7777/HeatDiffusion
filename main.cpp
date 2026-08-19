@@ -7,8 +7,10 @@
 constexpr float DX = 1;
 constexpr float DY = 1;
 constexpr float DT = 0.1;
-constexpr int CELL_SIZE_W = 5;
-constexpr int CELL_SIZE_H = 5;
+constexpr int CELL_SIZE_W = 10;
+constexpr int CELL_SIZE_H = 10;
+constexpr int TOTAL_CELLS = CELL_SIZE_W * CELL_SIZE_H;
+constexpr int CENTER_CELL = CELL_SIZE_W * CELL_SIZE_H / 2;
 
 int directions [4][2] = {
     {-1, 0,},{1, 0}, // left, right
@@ -42,7 +44,7 @@ void calculateNewTemp(float *cells) {
             neighborCellCount[flatIndex] = neighborCount;
             if (neighborCount == 4) {
                 float xAxisPartialSum = DT * (cells[neighborCells[0]] - (2*cells[flatIndex]) + cells[neighborCells[1]]);
-                float yAxisPartialSum = DT * (cells[neighborCells[1]] - (2*cells[flatIndex]) + cells[neighborCells[3]]);
+                float yAxisPartialSum = DT * (cells[neighborCells[2]] - (2*cells[flatIndex]) + cells[neighborCells[3]]);
 
                 float xAxisFinalSum = xAxisPartialSum / (DX * DX);
                 float yAxisFinalSum = yAxisPartialSum / (DY * DY);
@@ -72,29 +74,34 @@ int main() {
         cells[i] = 20.0f;
     }
 
-    cells[(CELL_SIZE_W * CELL_SIZE_H)/2] = 100.0f;
+    cells[CENTER_CELL] = 100.0f;
 
     for (int row = 0; row < CELL_SIZE_H; row++) {
         for (int col = 0; col < CELL_SIZE_W; col++) {
             int flatIndex = row * CELL_SIZE_W + col;
 
-            std:: cout << cells[flatIndex] << " ";
+            printf("%.2f ", cells[flatIndex]);
         }
         std:: cout << std:: endl;
     }
     std:: cout << std:: endl;
 
-    calculateNewTemp(cells);
+    for (int i = 0; i < 150; i++) {
+        if (cells[(CELL_SIZE_W * CELL_SIZE_H) / 2] <= 20.001f) break;
 
-    for (int row = 0; row < CELL_SIZE_H; row++) {
-        for (int col = 0; col < CELL_SIZE_W; col++) {
-            int flatIndex = row * CELL_SIZE_W + col;
+        std:: cout << "Step: " << i + 1 << std:: endl;
+        for (int row = 0; row < CELL_SIZE_H; row++) {
+            for (int col = 0; col < CELL_SIZE_W; col++) {
+                int flatIndex = row * CELL_SIZE_W + col;
 
-            std:: cout << cells[flatIndex] << " ";
+                printf("%.2f ", cells[flatIndex]);
+            }
+            std:: cout << std:: endl;
         }
         std:: cout << std:: endl;
+
+        calculateNewTemp(cells);
     }
-    std:: cout << std:: endl;
 
     free(cells);
 
