@@ -7,10 +7,15 @@
 constexpr float DX = 1;
 constexpr float DY = 1;
 constexpr float DT = 0.1;
+
 constexpr int CELL_SIZE_W = 10;
 constexpr int CELL_SIZE_H = 10;
+
+constexpr int CELL_ROW = CELL_SIZE_H / 2;
+constexpr int CELL_COL = CELL_SIZE_W / 2;
+
 constexpr int TOTAL_CELLS = CELL_SIZE_W * CELL_SIZE_H;
-constexpr int CENTER_CELL = CELL_SIZE_W * CELL_SIZE_H / 2;
+constexpr int CENTER_CELL = CELL_ROW * CELL_SIZE_W + CELL_COL;
 
 int directions [4][2] = {
     {-1, 0,},{1, 0}, // left, right
@@ -68,26 +73,16 @@ void calculateNewTemp(float *cells) {
 }
 
 int main() {
-    float *cells = static_cast<float *>(calloc(CELL_SIZE_W * CELL_SIZE_H, sizeof(float)));
+    float *cells = static_cast<float *>(calloc(TOTAL_CELLS, sizeof(float)));
 
-    for (int i = 0 ; i < CELL_SIZE_W * CELL_SIZE_H;  i++) {
+    for (int i = 0 ; i < TOTAL_CELLS;  i++) {
         cells[i] = 20.0f;
     }
 
     cells[CENTER_CELL] = 100.0f;
 
-    for (int row = 0; row < CELL_SIZE_H; row++) {
-        for (int col = 0; col < CELL_SIZE_W; col++) {
-            int flatIndex = row * CELL_SIZE_W + col;
-
-            printf("%.2f ", cells[flatIndex]);
-        }
-        std:: cout << std:: endl;
-    }
-    std:: cout << std:: endl;
-
     for (int i = 0; i < 150; i++) {
-        if (cells[(CELL_SIZE_W * CELL_SIZE_H) / 2] <= 20.001f) break;
+        if (cells[CENTER_CELL] <= 20.001f) break;
 
         std:: cout << "Step: " << i + 1 << std:: endl;
         for (int row = 0; row < CELL_SIZE_H; row++) {
