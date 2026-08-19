@@ -18,4 +18,6 @@ add_executable(HostHeatDiffusion
 
 add_executable(DeviceHeatDiffusion
         main.cu
+        deviceFunctions.cu
+        deviceFunctions.cuh
 )
