@@ -31,7 +31,7 @@ void calculateNewTemp(float *cells) {
             int index = 0;
             for (auto &direction : directions) {
                 int x = row  + direction[0];
-                int y = row  + direction[1];
+                int y = col  + direction[1];
 
                 if (checkValidCell(x, y) == false) continue;
 
@@ -71,9 +71,6 @@ int main() {
     for (int i = 0 ; i < CELL_SIZE_W * CELL_SIZE_H;  i++) {
         cells[i] = 20.0f;
     }
-
-    std:: cout << CELL_SIZE_W * CELL_SIZE_H << std:: endl;
-    std:: cout << (CELL_SIZE_W * CELL_SIZE_H) / 2 << std:: endl;
 
     cells[(CELL_SIZE_W * CELL_SIZE_H)/2] = 100.0f;
 
