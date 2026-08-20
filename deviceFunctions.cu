@@ -5,7 +5,7 @@
 #include "deviceFunctions.cuh"
 
 __device__ bool kernelValidCell(const int row, const int col) {
-    if (row < 0 || row >= TOTAL_CELLS || col < 0 || col >= TOTAL_CELLS) return false;
+    if (row < 0 || row >= CELL_SIZE_H || col < 0 || col >= CELL_SIZE_W) return false;
     return true;
 }
 
@@ -27,11 +27,11 @@ __global__ void kernelCalculateCellTemp(float *cellsIn, float *cellsOut) {
     int index = 0;
     for (auto &direction : directions) {
         const int x = static_cast<int>(row) + direction[0];
-        const int y = static_cast<int>(row) + direction[1];
+        const int y = static_cast<int>(col) + direction[1];
 
         if (kernelValidCell(x, y) == false) continue;
 
-        int neighborCellGlobalIndex = x * CELL_SIZE_W + col;
+        int neighborCellGlobalIndex = x * CELL_SIZE_W + y;
         neighborCells[index++] = neighborCellGlobalIndex;
         neighborCount++;
     }

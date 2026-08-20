@@ -40,8 +40,9 @@ int main() {
     dim3 blocks((CELL_SIZE_W + TPB - 1) / TPB, (CELL_SIZE_H + TPB - 1) / TPB);
 
     for (int i = 0; i < 10; i ++) {
+        if (hostCells[CENTER_CELL] <= 20.001f) break;
 
-        printf("Step: %d\n", i);
+        printf("Step: %d\n", i + 1);
         for (int row = 0; row < CELL_SIZE_H; row++) {
             for (int col = 0; col < CELL_SIZE_W; col++) {
                 int flatIndex = row * CELL_SIZE_W + col;
