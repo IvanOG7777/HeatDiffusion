@@ -16,8 +16,14 @@ add_executable(HostHeatDiffusion
         main.cpp
 )
 
-add_executable(DeviceHeatDiffusion
-        main.cu
-        deviceFunctions.cu
-        deviceFunctions.cuh
+add_executable(HeatDiffusionNaive
+        Naive/main.cu
+        Naive/deviceFunctions.cu
+        Naive/deviceFunctions.cuh
+)
+
+add_executable(DeviceHeatDiffusionTiled
+        Tiled/main.cu
+        Tiled/deviceFunctions.cu
+        Tiled/deviceFunctions.cuh
 )
