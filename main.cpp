@@ -81,7 +81,7 @@ int main() {
 
     cells[CENTER_CELL] = 100.0f;
 
-    for (int i = 0; i < 150; i++) {
+    for (int i = 0; i < 10; i++) {
         if (cells[CENTER_CELL] <= 20.001f) break;
 
         std:: cout << "Step: " << i + 1 << std:: endl;
