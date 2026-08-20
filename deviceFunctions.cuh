@@ -20,14 +20,9 @@ constexpr int CENTER_CELL = CELL_ROW * CELL_SIZE_W + CELL_COL;
 
 constexpr int TPB = 16;
 
-inline int directions [4][2] = {
-    {-1, 0,},{1, 0}, // left, right
-    {0, -1}, {0, 1} // down, up
-};
+__global__ void kernelCalculateCellTemp(float *cellsIn, float *cellsOut);
 
-__global__ void calculateCellTemp(int *cells);
-
-__device__ bool validCell(int row, int col);
+__device__ bool kernelValidCell(int row, int col);
 
 
 #endif //CUDAPRACTICE_DEVICEFUNCTIONS_CUH
