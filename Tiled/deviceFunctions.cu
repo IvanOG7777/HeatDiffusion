@@ -23,15 +23,6 @@ __global__ void kernelCalculateCellTemp(float *cellsIn, float *cellsOut) {
     unsigned int sharedRow = localRow + 1;
     unsigned int sharedCol = localCol + 1;
 
-    int directions [4][2] = {
-        {-1, 0,},{1, 0}, // left, right
-        {0, -1}, {0, 1} // down, up
-    };
-
-    int neighborCount = 0;
-    int neighborCells[4] = {0};
-    int index = 0;
-
     __shared__ float sharedTemperatures[TPB + 2][TPB + 2] = {0.0f};
 
     //loads normal interior cells
@@ -66,7 +57,15 @@ __global__ void kernelCalculateCellTemp(float *cellsIn, float *cellsOut) {
     }
     __syncthreads();
 
-    for (auto &direction : directions) {
-        
-    }
+    // up down neighbors
+    float xPartialSum = DT * (sharedTemperatures[sharedRow - 1][sharedCol] - (2 * sharedTemperatures[sharedRow][sharedCol] + sharedTemperatures[sharedRow + 1][sharedCol]));
+    // left right neighbors
+    float yPartialSum = DT * (sharedTemperatures[sharedRow][sharedCol - 1] - (2 * sharedTemperatures[sharedRow][sharedCol] + sharedTemperatures[sharedRow][sharedCol + 1]));
+
+    float xFinalSum = xPartialSum / (DX * DX);
+    float yFinalSum = yPartialSum / (DY * DY);
+
+    float finalSum = sharedTemperatures[sharedRow][sharedCol] + xFinalSum + yFinalSum;
+
+    cellsOut[globalCol] = finalSum;
 }
