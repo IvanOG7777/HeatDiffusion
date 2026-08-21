@@ -27,3 +27,10 @@ add_executable(DeviceHeatDiffusionTiled
         Tiled/deviceFunctions.cu
         Tiled/deviceFunctions.cuh
 )
+
+add_executable(VisualHeatDiffusion
+        Visual/Source/main.cu
+
+        Visual/Header/deviceFunctions.cu
+        Visual/Header/deviceFunctions.cuh
+)
