@@ -16,6 +16,15 @@ int main() {
 
     hostCells[CENTER_CELL] = 100.0f;
 
+    for (int row = 0; row < CELL_SIZE_H; row++) {
+        for (int col = 0; col < CELL_SIZE_W; col++) {
+            int globalIndex = row * CELL_SIZE_W + col;
+            printf("%.2f ", hostCells[globalIndex]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+
     float *deviceCellsIn = nullptr;
     float *deviceCellsOut = nullptr;
     cudaError err = {};
@@ -43,8 +52,30 @@ int main() {
     auto blocksY = (CELL_SIZE_H + threads.y - 1) / threads.y;
     dim3 blocks(blocksX, blocksY);
 
-    kernelCalculateCellTemp<<<blocks, threads>>>(deviceCellsIn, deviceCellsOut);
+    for (int i = 0; i < 10; i++) {
+        if (hostCells[CENTER_CELL] <= 20.001f) break;
 
+        kernelCalculateCellTemp<<<blocks, threads>>>(deviceCellsIn, deviceCellsOut);
+
+        err = cudaMemcpy(hostCells, deviceCellsOut, TOTAL_CELLS * sizeof(float), cudaMemcpyDeviceToHost);
+        if (err != cudaSuccess) {
+            printf("FAILED TO COPY TO HOST CELLS\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int row = 0; row < CELL_SIZE_H; row++) {
+            for (int col = 0; col < CELL_SIZE_W; col++) {
+                int globalIndex = row * CELL_SIZE_W + col;
+
+                printf("%.2f ", hostCells[globalIndex]);
+            }
+            printf("\n");
+        }
+        printf("\n");
+
+        float *tempPtr = deviceCellsIn;
+        deviceCellsIn = deviceCellsOut;
+    }
 
     return 0;
 }

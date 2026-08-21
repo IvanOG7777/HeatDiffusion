@@ -23,7 +23,14 @@ __global__ void kernelCalculateCellTemp(float *cellsIn, float *cellsOut) {
     unsigned int sharedRow = localRow + 1;
     unsigned int sharedCol = localCol + 1;
 
-    __shared__ float sharedTemperatures[TPB + 2][TPB + 2] = {0.0f};
+    int directions [4][2] = {
+        {-1, 0,}, // left
+        {1, 0}, // right
+        {0, -1}, // down
+        {0, 1} // up
+    };
+
+    __shared__ float sharedTemperatures[TPB + 2][TPB + 2];
 
     //loads normal interior cells
     if (kernelValidCell(static_cast<int>(globalRow), static_cast<int>(globalCol)) == true) {
@@ -57,15 +64,27 @@ __global__ void kernelCalculateCellTemp(float *cellsIn, float *cellsOut) {
     }
     __syncthreads();
 
-    // up down neighbors
-    float xPartialSum = DT * (sharedTemperatures[sharedRow - 1][sharedCol] - (2 * sharedTemperatures[sharedRow][sharedCol] + sharedTemperatures[sharedRow + 1][sharedCol]));
-    // left right neighbors
-    float yPartialSum = DT * (sharedTemperatures[sharedRow][sharedCol - 1] - (2 * sharedTemperatures[sharedRow][sharedCol] + sharedTemperatures[sharedRow][sharedCol + 1]));
+    int neighborCount = 0;
+    for (auto &direction : directions) {
+        int x = static_cast<int>(globalRow) + direction[0];
+        int y = static_cast<int>(globalCol) + direction[1];
+        if (kernelValidCell(x, y) == false) continue;
+        neighborCount++;
+    }
 
-    float xFinalSum = xPartialSum / (DX * DX);
-    float yFinalSum = yPartialSum / (DY * DY);
+    if (neighborCount == 4) {
+        // up down neighbors
+        float xPartialSum = DT * (sharedTemperatures[sharedRow - 1][sharedCol] - (2 * sharedTemperatures[sharedRow][sharedCol]) + sharedTemperatures[sharedRow + 1][sharedCol]);
+        // left right neighbors
+        float yPartialSum = DT * (sharedTemperatures[sharedRow][sharedCol - 1] - (2 * sharedTemperatures[sharedRow][sharedCol]) + sharedTemperatures[sharedRow][sharedCol + 1]);
 
-    float finalSum = sharedTemperatures[sharedRow][sharedCol] + xFinalSum + yFinalSum;
+        float xFinalSum = xPartialSum / (DX * DX);
+        float yFinalSum = yPartialSum / (DY * DY);
 
-    cellsOut[globalCol] = finalSum;
+        float finalSum = sharedTemperatures[sharedRow][sharedCol] + xFinalSum + yFinalSum;
+
+        cellsOut[globalIndex] = finalSum;
+    } else {
+        cellsOut[globalIndex] = cellsIn[globalIndex];
+    }
 }
