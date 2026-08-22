@@ -30,7 +30,20 @@ add_executable(DeviceHeatDiffusionTiled
 
 add_executable(VisualHeatDiffusion
         Visual/Source/main.cu
+        Visual/Source/glad.c
+        Visual/Source/deviceFunctions.cu
+        Visual/Source/glUtils.cu
 
-        Visual/Header/deviceFunctions.cu
+
         Visual/Header/deviceFunctions.cuh
+        Visual/Header/glUtils.cuh
+)
+
+target_include_directories(VisualHeatDiffusion PRIVATE
+        ${CMAKE_SOURCE_DIR}/Visual/Libraries/include
+)
+
+target_link_libraries(VisualHeatDiffusion PRIVATE
+        ${CMAKE_SOURCE_DIR}/Visual/Libraries/lib/glfw3.lib
+        opengl32
 )
