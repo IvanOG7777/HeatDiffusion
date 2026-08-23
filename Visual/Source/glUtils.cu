@@ -44,16 +44,16 @@ const char *makeFragmentShader() {
     return R"GLSL(
     #version 330 core
 
-    in vertexColor;
+    in vec3 vertexColor;
     out vec4 FragColor;
 
     void main() {
-        FragColor = vec4(vertexColor, 1,0);
+        FragColor = vec4(vertexColor, 1.0);
     }
     )GLSL";
 }
 
-void setVAO(GLuint VAO, GLuint positionVBO, GLuint colorVBO, GLenum drawHint) {
+void setVAO(GLuint &VAO, GLuint &positionVBO, GLuint &colorVBO, GLenum drawHint) {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &positionVBO);
     glGenBuffers(1, &colorVBO);
@@ -62,13 +62,13 @@ void setVAO(GLuint VAO, GLuint positionVBO, GLuint colorVBO, GLenum drawHint) {
 
     glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
     glBufferData(GL_ARRAY_BUFFER, TOTAL_CELLS * 2 * sizeof(float), nullptr, drawHint);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float), static_cast<void *>(nullptr));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
     glBufferData(GL_ARRAY_BUFFER, TOTAL_CELLS * 3 * sizeof(float), nullptr, drawHint);
-    glVertexAttribPointer(0,3, GL_FLOAT, GL_FALSE, sizeof(float), static_cast<void *>(nullptr));
-    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1,3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast<void *>(nullptr));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

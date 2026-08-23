@@ -9,8 +9,8 @@ constexpr float DX = 1;
 constexpr float DY = 1;
 constexpr float DT = 0.1;
 
-constexpr int CELL_SIZE_W = 10;
-constexpr int CELL_SIZE_H = 10;
+constexpr int CELL_SIZE_W = 800;
+constexpr int CELL_SIZE_H = 800;
 
 constexpr int CELL_ROW = CELL_SIZE_H / 2;
 constexpr int CELL_COL = CELL_SIZE_W / 2;
