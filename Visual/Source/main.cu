@@ -9,7 +9,7 @@
 
 #include <cuda_gl_interop.h>
 
-float COLORS[8][3] = {
+float3 COLORS[8] = {
     {1.0f, 0.0f, 0.0f}, // red
     {1.0f, .23f, 0.0f}, // red orange
     {1.0f, .41f, 0.0f}, // orange
@@ -94,14 +94,10 @@ int main() {
     }
 
     for (int i = 0; i < TOTAL_CELLS; i++) {
-        hostCellColors[i].x = COLORS[7][0];
-        hostCellColors[i].y = COLORS[7][1];
-        hostCellColors[i].z = COLORS[7][2];
+        hostCellColors[i]= COLORS[7];
     }
 
-    hostCellColors[CENTER_CELL].x = COLORS[0][0];
-    hostCellColors[CENTER_CELL].y = COLORS[0][1];
-    hostCellColors[CENTER_CELL].z = COLORS[0][2];
+    hostCellColors[CENTER_CELL] = COLORS[0];
     //////
 
     glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
@@ -114,6 +110,7 @@ int main() {
 
     float *deviceCellsIn = nullptr;
     float *deviceCellsOut = nullptr;
+    float3 *deviceColors = nullptr;
     cudaError err = {};
 
     ////// allocations and memory copying
@@ -129,9 +126,21 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    err = cudaMalloc(&deviceColors, 8 * sizeof(float3));
+    if (err != cudaSuccess) {
+        printf("FAILED TO ALLOCATE MEMORY FOR DEVICE_COLORS\n");
+        exit(EXIT_FAILURE);
+    }
+
     err = cudaMemcpy(deviceCellsIn, hostCells, TOTAL_CELLS * sizeof(float), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
         printf("FAILED TO COPY DATA FOR DEVICE_CELLS_IN\n");
+        exit(EXIT_FAILURE);
+    }
+
+    err = cudaMemcpy(deviceColors, COLORS, 8 * sizeof(float3), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        printf("FAILED TO COPY DATA FOR DEVICE_COLORS\n");
         exit(EXIT_FAILURE);
     }
     //////
@@ -146,8 +155,8 @@ int main() {
 
     dim3 threads(TPB, TPB);
 
-    unsigned int blockX = (CELL_SIZE_H + TPB - 1) / TPB;
-    unsigned int blockY = (CELL_SIZE_W + TPB - 1) / TPB;
+    unsigned int blockX = (CELL_SIZE_W + TPB - 1) / TPB; // col
+    unsigned int blockY = (CELL_SIZE_H + TPB - 1) / TPB; // row
 
     dim3 blocks(blockX, blockY);
 
@@ -157,6 +166,18 @@ int main() {
 
         kernelCalculateCellTemp<<<blocks, threads>>>(deviceCellsIn, deviceCellsOut);
         cudaDeviceSynchronize();
+
+        float3 *deviceVBOColors = nullptr;
+        size_t mappedSize = 0;
+
+        cudaGraphicsMapResources(1, &cudaResource);
+
+        cudaGraphicsResourceGetMappedPointer(reinterpret_cast<void **>(&deviceVBOColors),&mappedSize,cudaResource);
+
+        kernelChangeCellColor<<<blocks, threads>>>(deviceCellsOut, deviceColors, deviceVBOColors);
+        cudaDeviceSynchronize();
+
+        cudaGraphicsUnmapResources(1, &cudaResource);
 
         glUseProgram(program);
         glBindVertexArray(VAO);

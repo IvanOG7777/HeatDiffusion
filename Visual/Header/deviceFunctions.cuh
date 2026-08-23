@@ -4,10 +4,11 @@
 
 #ifndef CUDAPRACTICE_DEVICEFUNCTIONS_CUH
 #define CUDAPRACTICE_DEVICEFUNCTIONS_CUH
+#include "glad/glad.h"
 
-constexpr float DX = 1;
-constexpr float DY = 1;
-constexpr float DT = 0.001;
+constexpr float DX = 12.5f;
+constexpr float DY = 5.0f;
+constexpr float DT = 2.0f;
 
 constexpr int CELL_SIZE_W = 800;
 constexpr int CELL_SIZE_H = 800;
@@ -23,5 +24,7 @@ constexpr int TPB = 16;
 __device__ bool kernelValidCell(int row, int col);
 
 __global__ void kernelCalculateCellTemp(float *cellsIn, float *cellsOut);
+
+__global__ void kernelChangeCellColor(float *cellsIn, const float3 *colors, float3 *colorsOut);
 
 #endif //CUDAPRACTICE_DEVICEFUNCTIONS_CUH
