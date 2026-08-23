@@ -9,6 +9,17 @@
 
 #include <cuda_gl_interop.h>
 
+float COLORS[8][3] = {
+    {1.0f, 0.0f, 0.0f}, // red
+    {1.0f, .23f, 0.0f}, // red orange
+    {1.0f, .41f, 0.0f}, // orange
+    {1.0f, .60f, 0.0f}, // orange
+    {0.0f, .84f, 1.0f}, // teal
+    {0.0f, .58f, 1.0f}, // blue
+    {0.0f, .35f, 1.0f}, // blue
+    {0.0f, 0.0f, 1.0f} // dark blue
+};
+
 int main() {
     if (!glfwInit()) {
         printf("FAILED TO LOAD GLFW\n");
@@ -44,8 +55,10 @@ int main() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
+    ////// Host allocations
     float *hostCells = static_cast<float *>(calloc(TOTAL_CELLS, sizeof(float)));
     float *hostCellPositions = static_cast<float *>(calloc(TOTAL_CELLS, 2 * sizeof(float)));
+    float3 *hostCellColors = static_cast<float3 *>(calloc(TOTAL_CELLS,  sizeof(float3)));
 
     if (hostCells == nullptr) {
         printf("FAILED TO ALLOCATE MEMORY FOR HOST_CELLS\n");
@@ -55,7 +68,13 @@ int main() {
         printf("FAILED TO ALLOCATE MEMORY FOR HOST_CELL_POSITIONS\n");
         exit(EXIT_FAILURE);
     }
+    if (hostCellColors == nullptr) {
+        printf("FAILED TO ALLOCATE MEMORY FOR HOST_CELL_POSITIONS\n");
+        exit(EXIT_FAILURE);
+    }
+    //////
 
+    ////// Init of cell temps and positions and colors
     for (int i = 0; i < TOTAL_CELLS; i++) {
         hostCells[i] = 20.0f;
     }
@@ -74,14 +93,30 @@ int main() {
         }
     }
 
+    for (int i = 0; i < TOTAL_CELLS; i++) {
+        hostCellColors[i].x = COLORS[7][0];
+        hostCellColors[i].y = COLORS[7][1];
+        hostCellColors[i].z = COLORS[7][2];
+    }
+
+    hostCellColors[CENTER_CELL].x = COLORS[0][0];
+    hostCellColors[CENTER_CELL].y = COLORS[0][1];
+    hostCellColors[CENTER_CELL].z = COLORS[0][2];
+    //////
+
     glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
     glBufferSubData(GL_ARRAY_BUFFER,0,TOTAL_CELLS * 2 * sizeof(float), hostCellPositions);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
+    glBufferSubData(GL_ARRAY_BUFFER,0,TOTAL_CELLS * sizeof(float3), hostCellColors);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     float *deviceCellsIn = nullptr;
     float *deviceCellsOut = nullptr;
     cudaError err = {};
 
+    ////// allocations and memory copying
     err = cudaMalloc(&deviceCellsIn, TOTAL_CELLS * sizeof(float));
     if (err != cudaSuccess) {
         printf("FAILED TO ALLOCATE MEMORY FOR DEVICE_CELLS_IN\n");
@@ -99,12 +134,7 @@ int main() {
         printf("FAILED TO COPY DATA FOR DEVICE_CELLS_IN\n");
         exit(EXIT_FAILURE);
     }
-
-    err = cudaMemcpy(deviceCellsIn, hostCells, TOTAL_CELLS * sizeof(float), cudaMemcpyHostToDevice);
-    if (err != cudaSuccess) {
-        printf("FAILED TO COPY DATA FOR DEVICE_CELLS_IN\n");
-        exit(EXIT_FAILURE);
-    }
+    //////
 
     cudaGraphicsResource *cudaResource = nullptr;
 
@@ -121,11 +151,19 @@ int main() {
 
     dim3 blocks(blockX, blockY);
 
+    // Main render loop
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         kernelCalculateCellTemp<<<blocks, threads>>>(deviceCellsIn, deviceCellsOut);
         cudaDeviceSynchronize();
+
+        glUseProgram(program);
+        glBindVertexArray(VAO);
+
+        glDrawArrays(GL_POINTS, 0, TOTAL_CELLS);
+
+        glBindVertexArray(0);
 
         std::swap(deviceCellsIn, deviceCellsOut);
 
